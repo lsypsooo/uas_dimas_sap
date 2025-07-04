@@ -1,0 +1,87 @@
+// schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  SUPERADMIN
+  ADMIN_PERUSAHAAN
+  KARYAWAN
+}
+
+model User {
+  id          Int       @id @default(autoincrement())
+  email String @unique
+  username    String    
+  password    String
+  role        Role
+  perusahaan  Perusahaan? @relation(fields: [perusahaanId], references: [id])
+  perusahaanId Int?
+  karyawan    Karyawan?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Perusahaan {
+  id          Int       @id @default(autoincrement())
+  nama        String
+  alamat      String?
+  telepon     String?
+  email       String?
+  users       User[]
+  karyawans   Karyawan[]
+  gajis       Gaji[]
+  cutis       Cuti[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Karyawan {
+  id          Int       @id @default(autoincrement())
+  
+ 
+  jabatan     String
+  departemen  String
+  user        User      @relation(fields: [userId], references: [id])
+  userId      Int       @unique
+  perusahaan  Perusahaan @relation(fields: [perusahaanId], references: [id])
+  perusahaanId Int
+  gajis       Gaji[]
+  cutis       Cuti[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Gaji {
+  id          Int       @id @default(autoincrement())
+  karyawan    Karyawan  @relation(fields: [karyawanId], references: [id])
+  karyawanId  Int
+  perusahaan  Perusahaan @relation(fields: [perusahaanId], references: [id])
+  perusahaanId Int
+  jumlah      Float
+  bulan       Int
+  tahun       Int
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([karyawanId, bulan, tahun])
+}
+
+model Cuti {
+  id          Int       @id @default(autoincrement())
+  karyawan    Karyawan  @relation(fields: [karyawanId], references: [id])
+  karyawanId  Int
+  perusahaan  Perusahaan @relation(fields: [perusahaanId], references: [id])
+  perusahaanId Int
+  tanggalMulai DateTime
+  tanggalSelesai DateTime
+  alasan     String
+  status      String    @default("PENDING") // PENDING, APPROVED, REJECTED
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
