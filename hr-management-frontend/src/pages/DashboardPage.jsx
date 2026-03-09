@@ -4,13 +4,10 @@ import AdminDashboard from "./adminperusahaan/AdminPerusahaanDashboard";
 // 1. Import semua komponen dashboard spesifik
 
 import EmployeeDashboard from "./karyawan/EmployeeDashboard";
-import SuperAdminDashboard from "./superadmin/superAdminDashboard";
+import SuperAdminDashboard from "./superadmin/SuperAdminDashboard";
 
 const DashboardPage = () => {
   const { user } = useAuth();
-
-  // Tambahkan console.log untuk melihat peran asli dari user
-  console.log("Peran Pengguna Terdeteksi:", user?.role);
 
   // 2. Fungsi untuk memilih dan merender dashboard yang tepat
   const renderDashboardByRole = () => {

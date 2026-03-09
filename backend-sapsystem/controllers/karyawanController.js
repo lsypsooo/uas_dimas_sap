@@ -1,6 +1,4 @@
-// File: controllers/karyawan.controller.js (KODE FINAL YANG BENAR)
-const { PrismaClient } = require("@prisma/client");
-const prisma = new PrismaClient();
+const prisma = require("../lib/prisma");
 const bcrypt = require("bcrypt");
 const validator = require("validator");
 
@@ -21,6 +19,16 @@ const getAllKaryawan = async (req, res) => {
             id: true,
             username: true,
             email: true,
+          },
+        },
+        gajis: {
+          orderBy: [{ tahun: "desc" }, { bulan: "desc" }],
+          take: 1,
+          select: {
+            id: true,
+            jumlah: true,
+            bulan: true,
+            tahun: true,
           },
         },
       },

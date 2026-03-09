@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { toast } from "react-toastify";
+import { HiOutlinePlus } from "react-icons/hi";
 import apiClient from "../../services/api";
 import UserAdminTable from "../../components/features/users/UserAdminTable";
 import UserAdminModal from "../../components/features/users/UserAdminModal";
@@ -12,19 +14,14 @@ const UserAdminPage = () => {
   const fetchUserAdmins = async () => {
     setIsLoading(true);
     try {
-      // 1. Mengambil SEMUA user, karena controller tidak menyediakan filter by role
       const response = await apiClient.get("/users");
       const allUsers = response.data;
-
-      // 2. Melakukan filter di sisi frontend
-      // Sesuaikan 'ADMIN' jika nama peran di database Anda berbeda (misal: 'Admin Perusahaan')
       const adminUsers = allUsers.filter(
-        (user) => user.role.toUpperCase() === "ADMIN_PERUSAHAAN"
+        (user) => user.role?.toLowerCase() === "admin_perusahaan",
       );
-
       setUsers(adminUsers);
-    } catch (error) {
-      console.error("Gagal mengambil data user admin:", error);
+    } catch {
+      toast.error("Gagal mengambil data user admin.");
     } finally {
       setIsLoading(false);
     }
@@ -50,7 +47,6 @@ const UserAdminPage = () => {
   };
 
   const handleSaveUser = async (formData) => {
-    // 3. Menyesuaikan payload dengan yang diharapkan backend
     const payload = { ...formData };
     if (editingUser && !payload.password) {
       delete payload.password;
@@ -58,24 +54,19 @@ const UserAdminPage = () => {
 
     try {
       if (editingUser) {
-        // Endpoint PUT sudah benar
         await apiClient.put(`/users/${editingUser.id}`, payload);
-        alert("User admin berhasil diperbarui.");
+        toast.success("User admin berhasil diperbarui.");
       } else {
-        // 4. Endpoint POST diubah dan role ditambahkan ke payload
         await apiClient.post("/users", {
           ...payload,
           role: "ADMIN_PERUSAHAAN",
         });
-        alert("User admin berhasil ditambahkan.");
+        toast.success("User admin berhasil ditambahkan.");
       }
       handleCloseModal();
       fetchUserAdmins();
     } catch (error) {
-      console.error("Gagal menyimpan user admin:", error);
-      const errorMessage =
-        error.response?.data?.error || "Gagal menyimpan user admin.";
-      alert(errorMessage);
+      toast.error(error.response?.data?.error || "Gagal menyimpan user admin.");
     }
   };
 
@@ -83,33 +74,33 @@ const UserAdminPage = () => {
     if (window.confirm("Yakin ingin menghapus user ini?")) {
       try {
         await apiClient.delete(`/users/${id}`);
-        alert("User admin berhasil dihapus.");
+        toast.success("User admin berhasil dihapus.");
         fetchUserAdmins();
       } catch (error) {
-        console.error("Gagal menghapus user admin:", error);
-        const errorMessage =
-          error.response?.data?.error || "Gagal menghapus user admin.";
-        alert(errorMessage);
+        toast.error(
+          error.response?.data?.error || "Gagal menghapus user admin.",
+        );
       }
     }
   };
 
   return (
     <>
-      <div className="mb-6 flex justify-between items-center">
-        <h2 className="text-2xl font-semibold text-black ">
-          Manajemen User Admin
-        </h2>
-        <button
-          onClick={handleOpenAddModal}
-          className="rounded-md bg-primary py-3 px-8 text-center font-medium text-white hover:bg-opacity-90"
-        >
+      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="page-title">Manajemen User Admin</h1>
+          <p className="page-subtitle">Kelola akun admin perusahaan.</p>
+        </div>
+        <button onClick={handleOpenAddModal} className="btn-primary">
+          <HiOutlinePlus className="h-5 w-5" />
           Tambah User Admin
         </button>
       </div>
 
       {isLoading ? (
-        <p>Loading...</p>
+        <div className="flex justify-center py-20">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary-200 border-t-primary-600" />
+        </div>
       ) : (
         <UserAdminTable
           users={users}

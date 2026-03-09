@@ -1,125 +1,103 @@
-// src/pages/superadmin/SuperAdminDashboard.jsx
-
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import apiClient from "../../services/api";
+import { HiOutlineOfficeBuilding, HiOutlineUserGroup } from "react-icons/hi";
 
-// Komponen untuk kartu statistik (Tidak ada perubahan)
-const StatCard = ({ title, value, icon }) => (
-  <div className="rounded-sm border border-stroke bg-white py-6 px-7 shadow-default dark:border-strokedark dark:bg-boxdark">
-    <div className="flex h-11 w-11 items-center justify-center rounded-full bg-meta-2 dark:bg-meta-4">
-      {icon}
-    </div>
-    <div className="mt-4 flex items-end justify-between">
-      <div>
-        <h4 className="text-title-md font-bold text-black ">{value}</h4>
-        <span className="text-sm font-medium">{title}</span>
+const StatCard = ({ title, value, icon, linkTo, color }) => {
+  const content = (
+    <div className="card p-6 transition-all duration-200 hover:shadow-md">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm font-medium text-slate-500">{title}</p>
+          <p className="mt-2 text-3xl font-bold text-slate-900">{value}</p>
+        </div>
+        <div
+          className={`flex h-12 w-12 items-center justify-center rounded-xl ${color}`}
+        >
+          {icon}
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
+  return linkTo ? <Link to={linkTo}>{content}</Link> : content;
+};
 
 const SuperAdminDashboard = () => {
-  // 1. Siapkan state untuk statistik, loading, dan error
   const [stats, setStats] = useState({ totalCompanies: 0, totalAdmins: 0 });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // 2. Gunakan useEffect untuk mengambil data saat komponen dimuat
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        // Panggil endpoint untuk mendapatkan semua perusahaan
-        const companyResponse = await apiClient.get("/perusahaan");
-
-        // Hitung jumlah perusahaan dari panjang array data
-        const responseData = companyResponse.data.data || companyResponse.data; // Cek mana yang ada datanya
-        const totalCompanies = responseData.length;
+        const [companyRes, usersRes] = await Promise.all([
+          apiClient.get("/perusahaan"),
+          apiClient.get("/users"),
+        ]);
+        const companies = companyRes.data.data || companyRes.data;
+        const users = usersRes.data.data || usersRes.data;
+        const adminCount = Array.isArray(users)
+          ? users.filter((u) => u.role?.toLowerCase() === "admin_perusahaan")
+              .length
+          : 0;
         setStats({
-          totalCompanies: totalCompanies,
-          //...
-        });
-        // Update state dengan data yang baru
-        // Karena kita belum punya endpoint untuk admin, kita isi '0' dulu
-        setStats({
-          totalCompanies: totalCompanies,
-          totalAdmins: 0, // Ganti nanti jika sudah ada endpointnya
+          totalCompanies: Array.isArray(companies) ? companies.length : 0,
+          totalAdmins: adminCount,
         });
       } catch (err) {
-        console.error("Gagal mengambil data dashboard:", err);
         setError(err);
       } finally {
         setIsLoading(false);
       }
     };
-
     fetchDashboardData();
-  }, []); // `[]` memastikan ini hanya berjalan sekali
+  }, []);
 
-  // -- Definisi Ikon (Tidak ada perubahan) --
-  const companyIcon = (
-    <svg
-      className="h-6 w-6 text-primary"
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="2"
-        d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m-1 4h1m-1 4h1m-5-4h1m-1 4h1m-1-4h1m-1 4h1"
-      />
-    </svg>
-  );
-  const adminIcon = (
-    <svg
-      className="h-6 w-6 text-primary"
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="2"
-        d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M15 21a6 6 0 00-9-5.197M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-      />
-    </svg>
-  );
-
-  // 3. Tampilkan status loading atau error jika ada
   if (isLoading) {
-    return <div className="">Memuat data...</div>;
+    return (
+      <div className="flex items-center justify-center py-20">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary-200 border-t-primary-600" />
+      </div>
+    );
   }
 
   if (error) {
-    return <div className="text-red-500">Gagal memuat data dashboard.</div>;
+    return (
+      <div className="card mx-auto max-w-md p-8 text-center">
+        <p className="text-red-600 font-medium">Gagal memuat data dashboard.</p>
+        <button
+          onClick={() => window.location.reload()}
+          className="btn-primary mt-4"
+        >
+          Coba Lagi
+        </button>
+      </div>
+    );
   }
 
-  // 4. Tampilkan UI dengan data dinamis
   return (
     <div>
-      <h1 className="text-2xl font-semibold mb-6 ">Dashboard SuperAdmin</h1>
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 xl:grid-cols-4 2xl:gap-7">
+      <div className="mb-8">
+        <h1 className="page-title">Dashboard Super Admin</h1>
+        <p className="page-subtitle">Ringkasan data sistem HR Management</p>
+      </div>
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
           title="Total Perusahaan"
           value={stats.totalCompanies}
-          icon={companyIcon}
+          icon={
+            <HiOutlineOfficeBuilding className="h-6 w-6 text-primary-600" />
+          }
+          color="bg-primary-50"
+          linkTo="/companies"
         />
         <StatCard
           title="Total Admin"
-          value={stats.totalAdmins > 0 ? stats.totalAdmins : "-"} // Tampilkan strip jika 0
-          icon={adminIcon}
+          value={stats.totalAdmins}
+          icon={<HiOutlineUserGroup className="h-6 w-6 text-emerald-600" />}
+          color="bg-emerald-50"
+          linkTo="/admins"
         />
-      </div>
-      <div className="mt-8">
-        <div className="rounded-sm border border-stroke bg-white p-6 shadow-default dark:border-strokedark dark:bg-boxdark">
-          <h3 className="text-xl font-semibold ">Aktivitas Terkini</h3>
-          <p className="mt-4 dark:text-gray-400">
-            Area ini bisa digunakan untuk menampilkan log aktivitas, seperti
-            perusahaan yang baru ditambahkan.
-          </p>
-        </div>
       </div>
     </div>
   );

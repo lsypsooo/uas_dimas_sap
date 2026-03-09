@@ -1,20 +1,20 @@
-// src/pages/NotFoundPage.jsx
 import { Link } from "react-router-dom";
+import { HiOutlineExclamationTriangle } from "react-icons/hi2";
 
 const NotFoundPage = () => {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-gray-100 text-center">
-      <h1 className="text-6xl font-extrabold text-indigo-600">404</h1>
-      <h2 className="mt-4 text-3xl font-bold text-gray-800">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-slate-50 px-4 text-center">
+      <div className="flex h-20 w-20 items-center justify-center rounded-full bg-primary-100 text-primary-600 mb-6">
+        <HiOutlineExclamationTriangle className="h-10 w-10" />
+      </div>
+      <h1 className="text-7xl font-extrabold text-primary-600">404</h1>
+      <h2 className="mt-3 text-2xl font-bold text-slate-800">
         Halaman Tidak Ditemukan
       </h2>
-      <p className="mt-2 text-gray-600">
-        Maaf, halaman yang Anda cari tidak ada.
+      <p className="mt-2 max-w-md text-slate-500">
+        Maaf, halaman yang Anda cari tidak ada atau telah dipindahkan.
       </p>
-      <Link
-        to="/dashboard"
-        className="mt-6 rounded-md bg-indigo-600 px-6 py-2 text-white transition hover:bg-indigo-700"
-      >
+      <Link to="/dashboard" className="btn btn-primary mt-8">
         Kembali ke Dashboard
       </Link>
     </div>

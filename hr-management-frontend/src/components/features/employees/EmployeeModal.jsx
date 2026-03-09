@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { HiOutlineX } from "react-icons/hi";
 
 const EmployeeModal = ({ isOpen, onClose, onSave, employeeToEdit }) => {
-  // 1. Sesuaikan initialFormData dengan field dari controller baru
   const initialFormData = {
     nama: "",
     email: "",
@@ -10,14 +10,15 @@ const EmployeeModal = ({ isOpen, onClose, onSave, employeeToEdit }) => {
     departemen: "",
   };
   const [formData, setFormData] = useState(initialFormData);
+  const [isSaving, setIsSaving] = useState(false);
+  const modalRef = useRef(null);
 
-  // Mengisi form jika dalam mode edit
   useEffect(() => {
     if (employeeToEdit) {
       setFormData({
-        nama: employeeToEdit.user?.username || "", // Backend menggunakan 'username' di dalam 'user'
+        nama: employeeToEdit.user?.username || "",
         email: employeeToEdit.user?.email || "",
-        password: "", // Selalu kosongkan password saat edit
+        password: "",
         jabatan: employeeToEdit.jabatan || "",
         departemen: employeeToEdit.departemen || "",
       });
@@ -26,6 +27,16 @@ const EmployeeModal = ({ isOpen, onClose, onSave, employeeToEdit }) => {
     }
   }, [employeeToEdit, isOpen]);
 
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleEscape = (e) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", handleEscape);
+    modalRef.current?.focus();
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   const handleChange = (e) => {
@@ -33,89 +44,106 @@ const EmployeeModal = ({ isOpen, onClose, onSave, employeeToEdit }) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onSave(formData);
+    setIsSaving(true);
+    try {
+      await onSave(formData);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-      <div className="w-full max-w-lg rounded-lg bg-white p-6 shadow-lg dark:bg-boxdark">
-        <h2 className="mb-4 text-xl font-bold text-black">
-          {employeeToEdit ? "Edit Karyawan" : "Tambah Karyawan Baru"}
-        </h2>
-        <form onSubmit={handleSubmit}>
-          {/* 2. Sesuaikan semua field di form */}
-          <div className="mb-4">
-            <label className="mb-2 block text-black">Nama Lengkap</label>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+      role="dialog"
+      aria-modal="true"
+      aria-label={employeeToEdit ? "Edit Karyawan" : "Tambah Karyawan Baru"}
+    >
+      <div
+        ref={modalRef}
+        tabIndex={-1}
+        className="card w-full max-w-lg p-0 shadow-xl"
+      >
+        <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
+          <h2 className="text-lg font-semibold text-slate-900">
+            {employeeToEdit ? "Edit Karyawan" : "Tambah Karyawan Baru"}
+          </h2>
+          <button onClick={onClose} className="btn-ghost !p-1.5 !rounded-lg">
+            <HiOutlineX className="h-5 w-5" />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          <div>
+            <label className="label">Nama Lengkap</label>
             <input
               type="text"
               name="nama"
               value={formData.nama}
               onChange={handleChange}
-              className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5"
+              className="input"
               required
             />
           </div>
-          <div className="mb-4">
-            <label className="mb-2 block text-black">Email</label>
+          <div>
+            <label className="label">Email</label>
             <input
               type="email"
               name="email"
               value={formData.email}
               onChange={handleChange}
-              className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5"
+              className="input"
               required
             />
           </div>
-          <div className="mb-4">
-            <label className="mb-2 block text-black">Password</label>
+          <div>
+            <label className="label">Password</label>
             <input
               type="password"
               name="password"
               value={formData.password}
               onChange={handleChange}
-              className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5"
+              className="input"
               placeholder={employeeToEdit ? "Isi untuk mengubah" : ""}
               required={!employeeToEdit}
             />
           </div>
-          <div className="mb-4">
-            <label className="mb-2 block text-black">Jabatan</label>
-            <input
-              type="text"
-              name="jabatan"
-              value={formData.jabatan}
-              onChange={handleChange}
-              className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5"
-              required
-            />
-          </div>
-          <div className="mb-6">
-            <label className="mb-2 block text-black ">Departemen</label>
-            <input
-              type="text"
-              name="departemen"
-              value={formData.departemen}
-              onChange={handleChange}
-              className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5"
-              required
-            />
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="label">Jabatan</label>
+              <input
+                type="text"
+                name="jabatan"
+                value={formData.jabatan}
+                onChange={handleChange}
+                className="input"
+                required
+              />
+            </div>
+            <div>
+              <label className="label">Departemen</label>
+              <input
+                type="text"
+                name="departemen"
+                value={formData.departemen}
+                onChange={handleChange}
+                className="input"
+                required
+              />
+            </div>
           </div>
 
-          <div className="flex justify-end gap-4">
-            <button
-              type="button"
-              onClick={onClose}
-              className="rounded bg-gray-300 py-2 px-4 font-medium text-black hover:bg-gray-400"
-            >
+          <div className="flex justify-end gap-3 pt-2">
+            <button type="button" onClick={onClose} className="btn-secondary">
               Batal
             </button>
-            <button
-              type="submit"
-              className="rounded bg-primary py-2 px-4 font-medium text-white hover:bg-opacity-90 bg-green-400"
-            >
-              Simpan
+            <button type="submit" disabled={isSaving} className="btn-primary">
+              {isSaving ? "Menyimpan..." : "Simpan"}
             </button>
           </div>
         </form>

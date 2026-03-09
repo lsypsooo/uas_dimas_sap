@@ -1,35 +1,30 @@
-import React from "react";
+import { HiOutlineCalendar, HiOutlineCheck, HiOutlineX } from "react-icons/hi";
 
-// Komponen StatusBadge disesuaikan dengan status baru dari controller
 const StatusBadge = ({ status }) => {
-  const baseClasses =
-    "rounded-full py-1 px-3 text-xs font-medium text-white capitalize";
-  let colorClass = "bg-gray-400";
-
-  switch (status?.toLowerCase()) {
-    case "approved":
-    case "disetujui":
-      colorClass = "bg-green-500";
-      break;
-    case "rejected":
-    case "ditolak":
-      colorClass = "bg-red-500";
-      break;
-    case "pending": // Diubah dari 'menunggu'
-      colorClass = "bg-yellow-500";
-      break;
-  }
-
+  const config = {
+    approved: "bg-emerald-50 text-emerald-700",
+    disetujui: "bg-emerald-50 text-emerald-700",
+    rejected: "bg-red-50 text-red-700",
+    ditolak: "bg-red-50 text-red-700",
+    pending: "bg-amber-50 text-amber-700",
+  };
+  const colorClass =
+    config[status?.toLowerCase()] || "bg-slate-100 text-slate-600";
   return (
-    <span className={`${baseClasses} ${colorClass}`}>{status || "N/A"}</span>
+    <span
+      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ${colorClass}`}
+    >
+      {status || "N/A"}
+    </span>
   );
 };
 
 const LeaveRequestTable = ({ leaveRequests, onApprove, onReject }) => {
   if (!Array.isArray(leaveRequests) || leaveRequests.length === 0) {
     return (
-      <div className="rounded-sm border border-stroke bg-white px-5 py-10 text-center shadow-default dark:border-strokedark dark:bg-boxdark">
-        <p className="font-medium text-black ">
+      <div className="card p-10 text-center">
+        <HiOutlineCalendar className="mx-auto h-12 w-12 text-slate-300" />
+        <p className="mt-3 text-sm font-medium text-slate-500">
           Belum ada pengajuan cuti dari karyawan.
         </p>
       </div>
@@ -37,76 +32,72 @@ const LeaveRequestTable = ({ leaveRequests, onApprove, onReject }) => {
   }
 
   return (
-    <div className="rounded-sm border border-stroke bg-white px-5 pt-6 pb-2.5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:pb-1">
-      <div className="max-w-full overflow-x-auto">
-        <table className="w-full table-auto">
+    <div className="card overflow-hidden">
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
           <thead>
-            <tr className="bg-gray-2 text-left dark:bg-meta-4">
-              <th className="min-w-[200px] py-4 px-4 font-medium text-black  xl:pl-11">
+            <tr className="border-b border-slate-200 bg-slate-50 text-left">
+              <th className="px-6 py-3.5 font-semibold text-slate-600">
                 Nama Karyawan
               </th>
-              <th className="min-w-[120px] py-4 px-4 font-medium text-black ">
+              <th className="px-6 py-3.5 font-semibold text-slate-600">
                 Tanggal Mulai
               </th>
-              <th className="min-w-[120px] py-4 px-4 font-medium text-black ">
+              <th className="px-6 py-3.5 font-semibold text-slate-600">
                 Tanggal Selesai
               </th>
-              <th className="min-w-[250px] py-4 px-4 font-medium text-black ">
+              <th className="px-6 py-3.5 font-semibold text-slate-600">
                 Alasan
               </th>
-              <th className="min-w-[120px] py-4 px-4 font-medium text-black ">
+              <th className="px-6 py-3.5 font-semibold text-slate-600">
                 Status
               </th>
-              <th className="py-4 px-4 font-medium text-black ">Aksi</th>
+              <th className="px-6 py-3.5 font-semibold text-slate-600 text-right">
+                Aksi
+              </th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y divide-slate-100">
             {leaveRequests.map((request) => (
-              <tr key={request.id}>
-                <td className="border-b border-[#eee] py-5 px-4 pl-9 dark:border-strokedark xl:pl-11">
-                  <h5 className="font-medium text-black ">
-                    {request.karyawan?.user?.username || "N/A"}
-                  </h5>
+              <tr
+                key={request.id}
+                className="hover:bg-slate-50/50 transition-colors"
+              >
+                <td className="px-6 py-4 font-medium text-slate-900">
+                  {request.karyawan?.user?.username || "N/A"}
                 </td>
-                <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
-                  {/* PERBAIKAN 1: Menggunakan 'tanggalMulai' */}
-                  <p className="text-black ">
-                    {new Date(request.tanggalMulai).toLocaleDateString("id-ID")}
-                  </p>
+                <td className="px-6 py-4 text-slate-600">
+                  {new Date(request.tanggalMulai).toLocaleDateString("id-ID")}
                 </td>
-                <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
-                  {/* PERBAIKAN 1: Menggunakan 'tanggalSelesai' */}
-                  <p className="text-black ">
-                    {new Date(request.tanggalSelesai).toLocaleDateString(
-                      "id-ID"
-                    )}
-                  </p>
+                <td className="px-6 py-4 text-slate-600">
+                  {new Date(request.tanggalSelesai).toLocaleDateString("id-ID")}
                 </td>
-                <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
-                  <p className="text-black ">{request.alasan}</p>
+                <td className="px-6 py-4 text-slate-600 max-w-[250px] truncate">
+                  {request.alasan}
                 </td>
-                <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
+                <td className="px-6 py-4">
                   <StatusBadge status={request.status} />
                 </td>
-                <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
-                  {/* PERBAIKAN 2: Memeriksa status 'pending' */}
+                <td className="px-6 py-4">
                   {request.status?.toLowerCase() === "pending" ? (
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center justify-end gap-1">
                       <button
                         onClick={() => onApprove(request.id)}
-                        className="text-green-500 hover:text-green-700"
+                        className="btn-ghost !p-2 !text-emerald-600 hover:!bg-emerald-50"
+                        title="Setujui"
                       >
-                        Setujui
+                        <HiOutlineCheck className="h-4 w-4" />
                       </button>
                       <button
                         onClick={() => onReject(request.id)}
-                        className="text-red-500 hover:text-red-700"
+                        className="btn-ghost !p-2 !text-red-600 hover:!bg-red-50"
+                        title="Tolak"
                       >
-                        Tolak
+                        <HiOutlineX className="h-4 w-4" />
                       </button>
                     </div>
                   ) : (
-                    <span>-</span>
+                    <span className="text-slate-400 text-right block">-</span>
                   )}
                 </td>
               </tr>

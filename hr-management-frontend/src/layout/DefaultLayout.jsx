@@ -1,39 +1,24 @@
-// src/layout/DefaultLayout.jsx
 import { useState } from "react";
-
-import Sidebar from "../components/Sidebar"; // Pastikan path import benar
-import { Outlet } from "react-router-dom"; // Pastikan Outlet di-import
-import Header from "../components/header";
+import Sidebar from "../components/Sidebar";
+import { Outlet } from "react-router-dom";
+import Header from "../components/Header";
 
 const DefaultLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="dark:bg-boxdark-2 dark:text-bodydark">
-      {/* */}
-      <div className="flex h-screen overflow-hidden">
-        {/* */}
-        <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
-        {/* */}
+    <div className="flex h-screen overflow-hidden bg-slate-50">
+      <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
-        {/* */}
-        <div className="relative flex flex-1 flex-col overflow-y-auto overflow-x-hidden">
-          {/* */}
-          <Header sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
-          {/* */}
+      <div className="relative flex flex-1 flex-col overflow-y-auto overflow-x-hidden">
+        <Header sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
-          {/* */}
-          <main>
-            <div className="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10">
-              {/* Di sinilah konten halaman kita (DashboardPage, dll) akan ditampilkan */}
-              <Outlet />
-            </div>
-          </main>
-          {/* */}
-        </div>
-        {/* */}
+        <main className="flex-1">
+          <div className="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10">
+            <Outlet />
+          </div>
+        </main>
       </div>
-      {/* */}
     </div>
   );
 };

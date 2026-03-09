@@ -8,7 +8,7 @@ router.use(authenticate);
 router.use(roleCheck(["SUPERADMIN"]));
 
 router.get("/", perusahaanController.getAllPerusahaan);
-router.post("/create", authenticate, perusahaanController.createPerusahaan);
+router.post("/create", perusahaanController.createPerusahaan);
 router.get("/:id", perusahaanController.getPerusahaanById);
 router.put("/:id", perusahaanController.updatePerusahaan);
 router.delete("/:id", perusahaanController.deletePerusahaan);

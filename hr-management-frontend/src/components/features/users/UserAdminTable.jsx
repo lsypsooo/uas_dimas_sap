@@ -1,10 +1,15 @@
-import React from "react";
+import {
+  HiOutlinePencil,
+  HiOutlineTrash,
+  HiOutlineUserGroup,
+} from "react-icons/hi";
 
 const UserAdminTable = ({ users, onEdit, onDelete }) => {
   if (!Array.isArray(users) || users.length === 0) {
     return (
-      <div className="rounded-sm border border-stroke bg-white px-5 py-10 text-center shadow-default dark:border-strokedark dark:bg-boxdark">
-        <p className="font-medium text-black ">
+      <div className="card p-10 text-center">
+        <HiOutlineUserGroup className="mx-auto h-12 w-12 text-slate-300" />
+        <p className="mt-3 text-sm font-medium text-slate-500">
           Belum ada data user admin yang tersedia.
         </p>
       </div>
@@ -12,53 +17,53 @@ const UserAdminTable = ({ users, onEdit, onDelete }) => {
   }
 
   return (
-    <div className="rounded-sm border border-stroke bg-white px-5 pt-6 pb-2.5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:pb-1">
-      <div className="max-w-full overflow-x-auto">
-        <table className="w-full table-auto">
+    <div className="card overflow-hidden">
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
           <thead>
-            <tr className="bg-gray-2 text-left dark:bg-meta-4">
-              <th className="min-w-[220px] py-4 px-4 font-medium text-black  xl:pl-11">
+            <tr className="border-b border-slate-200 bg-slate-50 text-left">
+              <th className="px-6 py-3.5 font-semibold text-slate-600">
                 Username
               </th>
-              <th className="min-w-[150px] py-4 px-4 font-medium text-black ">
+              <th className="px-6 py-3.5 font-semibold text-slate-600">
                 Email
               </th>
-              <th className="min-w-[150px] py-4 px-4 font-medium text-black ">
+              <th className="px-6 py-3.5 font-semibold text-slate-600">
                 Perusahaan
               </th>
-              <th className="py-4 px-4 font-medium text-black ">Aksi</th>
+              <th className="px-6 py-3.5 font-semibold text-slate-600 text-right">
+                Aksi
+              </th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y divide-slate-100">
             {users.map((user) => (
-              <tr key={user.id}>
-                <td className="border-b border-[#eee] py-5 px-4 pl-9 dark:border-strokedark xl:pl-11">
-                  <h5 className="font-medium text-black ">
-                    {user.username} {/* Menggunakan 'username' */}
-                  </h5>
+              <tr
+                key={user.id}
+                className="hover:bg-slate-50/50 transition-colors"
+              >
+                <td className="px-6 py-4 font-medium text-slate-900">
+                  {user.username}
                 </td>
-                <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
-                  <p className="text-black ">{user.email}</p>
+                <td className="px-6 py-4 text-slate-600">{user.email}</td>
+                <td className="px-6 py-4 text-slate-600">
+                  {user.perusahaan?.nama || "N/A"}
                 </td>
-                <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
-                  <p className="text-black ">
-                    {user.perusahaan?.nama || "N/A"}{" "}
-                    {/* Menggunakan 'perusahaan.nama' */}
-                  </p>
-                </td>
-                <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
-                  <div className="flex items-center space-x-3.5">
+                <td className="px-6 py-4">
+                  <div className="flex items-center justify-end gap-2">
                     <button
                       onClick={() => onEdit(user)}
-                      className="hover:text-primary"
+                      className="btn-ghost !p-2 !text-slate-500 hover:!text-primary-600"
+                      title="Edit"
                     >
-                      Edit
+                      <HiOutlinePencil className="h-4 w-4" />
                     </button>
                     <button
                       onClick={() => onDelete(user.id)}
-                      className="text-red-500 hover:text-primary"
+                      className="btn-ghost !p-2 !text-slate-500 hover:!text-red-600"
+                      title="Hapus"
                     >
-                      Hapus
+                      <HiOutlineTrash className="h-4 w-4" />
                     </button>
                   </div>
                 </td>

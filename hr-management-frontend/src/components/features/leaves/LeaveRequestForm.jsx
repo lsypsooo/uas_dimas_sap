@@ -1,87 +1,113 @@
 import { useState } from "react";
+import { toast } from "react-toastify";
+import { HiOutlinePaperAirplane } from "react-icons/hi2";
 
 const LeaveRequestForm = ({ onSave }) => {
-  // 1. Sesuaikan initialFormData dengan field dari controller
   const [formData, setFormData] = useState({
     tanggalMulai: "",
     tanggalSelesai: "",
     alasan: "",
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (
       !formData.tanggalMulai ||
       !formData.tanggalSelesai ||
       !formData.alasan
     ) {
-      alert("Semua field wajib diisi.");
+      toast.warn("Semua field wajib diisi.");
       return;
     }
     if (new Date(formData.tanggalSelesai) < new Date(formData.tanggalMulai)) {
-      alert("Tanggal selesai tidak boleh sebelum tanggal mulai.");
+      toast.warn("Tanggal selesai tidak boleh sebelum tanggal mulai.");
       return;
     }
-    onSave(formData);
-    // Reset form setelah berhasil
-    setFormData({ tanggalMulai: "", tanggalSelesai: "", alasan: "" });
+    setIsSubmitting(true);
+    try {
+      await onSave(formData);
+      setFormData({ tanggalMulai: "", tanggalSelesai: "", alasan: "" });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
-    <div className="rounded-sm border border-stroke bg-white p-6 shadow-default dark:border-strokedark dark:bg-boxdark">
-      <h3 className="text-xl font-semibold text-black  mb-4">
-        Formulir Pengajuan Cuti
-      </h3>
-      <form onSubmit={handleSubmit}>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+    <div className="card">
+      <div className="border-b border-slate-200 px-6 py-4">
+        <h3 className="text-lg font-semibold text-slate-800">
+          Formulir Pengajuan Cuti
+        </h3>
+        <p className="text-sm text-slate-500 mt-0.5">
+          Isi data di bawah untuk mengajukan cuti baru
+        </p>
+      </div>
+      <form onSubmit={handleSubmit} className="p-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
           <div>
-            <label className="mb-2 block text-black ">Tanggal Mulai</label>
-            {/* 2. Ganti nama field */}
+            <label htmlFor="tanggalMulai" className="label">
+              Tanggal Mulai
+            </label>
             <input
+              id="tanggalMulai"
               type="date"
               name="tanggalMulai"
               value={formData.tanggalMulai}
               onChange={handleChange}
-              className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black "
+              className="input"
               required
             />
           </div>
           <div>
-            <label className="mb-2 block text-black ">Tanggal Selesai</label>
-            {/* 2. Ganti nama field */}
+            <label htmlFor="tanggalSelesai" className="label">
+              Tanggal Selesai
+            </label>
             <input
+              id="tanggalSelesai"
               type="date"
               name="tanggalSelesai"
               value={formData.tanggalSelesai}
               onChange={handleChange}
-              className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black "
+              className="input"
               required
             />
           </div>
         </div>
         <div className="mb-6">
-          <label className="mb-2 block text-black ">Alasan Cuti</label>
-          {/* 2. Ganti nama field */}
+          <label htmlFor="alasan" className="label">
+            Alasan Cuti
+          </label>
           <textarea
+            id="alasan"
             rows={3}
             name="alasan"
             value={formData.alasan}
             onChange={handleChange}
-            className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5"
+            className="input resize-none"
+            placeholder="Tuliskan alasan cuti Anda..."
             required
-          ></textarea>
+          />
         </div>
         <div className="flex justify-end">
           <button
             type="submit"
-            className="rounded bg-primary py-3 px-8 font-medium text-white hover:bg-opacity-90"
+            disabled={isSubmitting}
+            className="btn btn-primary"
           >
-            Ajukan Cuti
+            {isSubmitting ? (
+              "Mengirim..."
+            ) : (
+              <>
+                <HiOutlinePaperAirplane className="h-4 w-4 mr-1.5" />
+                Ajukan Cuti
+              </>
+            )}
           </button>
         </div>
       </form>

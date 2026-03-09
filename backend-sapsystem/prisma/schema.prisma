@@ -43,8 +43,6 @@ model Perusahaan {
 
 model Karyawan {
   id          Int       @id @default(autoincrement())
-  
- 
   jabatan     String
   departemen  String
   user        User      @relation(fields: [userId], references: [id])

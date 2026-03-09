@@ -1,10 +1,11 @@
-import React from "react";
+import { HiOutlineCash } from "react-icons/hi";
 
 const SalaryHistoryTable = ({ salaryHistory }) => {
   if (!Array.isArray(salaryHistory) || salaryHistory.length === 0) {
     return (
-      <div className="rounded-sm border border-stroke bg-white px-5 py-10 text-center shadow-default dark:border-strokedark dark:bg-boxdark">
-        <p className="font-medium text-black ">
+      <div className="card p-10 text-center">
+        <HiOutlineCash className="mx-auto h-12 w-12 text-slate-300" />
+        <p className="mt-3 text-sm font-medium text-slate-500">
           Belum ada riwayat gaji yang tercatat untuk Anda.
         </p>
       </div>
@@ -27,41 +28,41 @@ const SalaryHistoryTable = ({ salaryHistory }) => {
   ];
 
   return (
-    <div className="rounded-sm border border-stroke bg-white px-5 pt-6 pb-2.5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:pb-1">
-      <div className="max-w-full overflow-x-auto">
-        <table className="w-full table-auto">
+    <div className="card overflow-hidden">
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
           <thead>
-            <tr className="bg-gray-2 text-left dark:bg-meta-4">
-              <th className="min-w-[150px] py-4 px-4 font-medium text-black  xl:pl-11">
+            <tr className="border-b border-slate-200 bg-slate-50 text-left">
+              <th className="px-6 py-3.5 font-semibold text-slate-600">
                 Periode
               </th>
-              <th className="min-w-[200px] py-4 px-4 font-medium text-black ">
+              <th className="px-6 py-3.5 font-semibold text-slate-600">
                 Jumlah Gaji
               </th>
-              <th className="py-4 px-4 font-medium text-black ">Status</th>
+              <th className="px-6 py-3.5 font-semibold text-slate-600">
+                Status
+              </th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y divide-slate-100">
             {salaryHistory.map((gaji) => (
-              <tr key={gaji.id}>
-                <td className="border-b border-[#eee] py-5 px-4 pl-9 dark:border-strokedark xl:pl-11">
-                  <h5 className="font-medium text-black ">
-                    {monthNames[gaji.bulan - 1]} {gaji.tahun}
-                  </h5>
+              <tr
+                key={gaji.id}
+                className="hover:bg-slate-50/50 transition-colors"
+              >
+                <td className="px-6 py-4 font-medium text-slate-900">
+                  {monthNames[gaji.bulan - 1]} {gaji.tahun}
                 </td>
-                <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
-                  <p className="text-black ">
-                    {new Intl.NumberFormat("id-ID", {
-                      style: "currency",
-                      currency: "IDR",
-                    }).format(gaji.jumlah)}
-                  </p>
+                <td className="px-6 py-4 text-slate-900">
+                  {new Intl.NumberFormat("id-ID", {
+                    style: "currency",
+                    currency: "IDR",
+                  }).format(gaji.jumlah)}
                 </td>
-                <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
-                  {/* Anda bisa menambahkan field status di backend jika perlu */}
-                  <p className="inline-flex rounded-full bg-green-100 py-1 px-3 text-sm font-medium text-green-700">
-                    Dibayarkan
-                  </p>
+                <td className="px-6 py-4">
+                  <span className="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-700">
+                    {gaji.status || "Dibayarkan"}
+                  </span>
                 </td>
               </tr>
             ))}

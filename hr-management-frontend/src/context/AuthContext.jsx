@@ -17,9 +17,15 @@ export const AuthProvider = ({ children }) => {
   // Efek ini akan memeriksa localStorage saat aplikasi pertama kali dimuat
   useEffect(() => {
     if (token) {
-      const storedUser = localStorage.getItem("user");
-      if (storedUser) {
-        setUser(JSON.parse(storedUser));
+      try {
+        const storedUser = localStorage.getItem("user");
+        if (storedUser) {
+          setUser(JSON.parse(storedUser));
+        }
+      } catch {
+        localStorage.removeItem("authToken");
+        localStorage.removeItem("user");
+        setToken(null);
       }
     }
   }, [token]);

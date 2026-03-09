@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { toast } from "react-toastify";
 import apiClient from "../../services/api";
 import LeaveRequestTable from "../../components/features/leaves/LeaveRequestTable";
 
@@ -6,15 +7,13 @@ const LeaveManagementPage = () => {
   const [leaveRequests, setLeaveRequests] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Fungsi untuk mengambil semua pengajuan cuti dari backend
   const fetchLeaveRequests = async () => {
     setIsLoading(true);
     try {
-      // Asumsi endpoint /cuti akan mengembalikan semua cuti di perusahaan admin
       const response = await apiClient.get("/cuti");
       setLeaveRequests(response.data.data || response.data);
     } catch (error) {
-      console.error("Gagal mengambil data pengajuan cuti:", error);
+      toast.error(error.response?.data?.error || "Gagal mengambil data pengajuan cuti.");
       setLeaveRequests([]);
     } finally {
       setIsLoading(false);
@@ -25,9 +24,8 @@ const LeaveManagementPage = () => {
     fetchLeaveRequests();
   }, []);
 
-  // Fungsi untuk mengubah status pengajuan cuti
   const handleUpdateStatus = async (id, status) => {
-    const action = status === "Disetujui" ? "menyetujui" : "menolak";
+    const action = status === "APPROVED" ? "menyetujui" : "menolak";
     if (
       !window.confirm(`Apakah Anda yakin ingin ${action} pengajuan cuti ini?`)
     ) {
@@ -35,37 +33,32 @@ const LeaveManagementPage = () => {
     }
 
     try {
-      // Asumsi endpoint untuk update status adalah seperti ini
       await apiClient.put(`/cuti/${id}/status`, { status });
-      alert(`Pengajuan cuti berhasil di${action}.`);
-      fetchLeaveRequests(); // Refresh data tabel
+      toast.success(`Pengajuan cuti berhasil di${action}.`);
+      fetchLeaveRequests();
     } catch (error) {
-      console.error(`Gagal ${action} pengajuan cuti:`, error);
-      alert(error.response?.data?.error || `Gagal ${action} pengajuan cuti.`);
+      toast.error(
+        error.response?.data?.error || `Gagal ${action} pengajuan cuti.`,
+      );
     }
   };
 
-  const handleApprove = (id) => {
-    handleUpdateStatus(id, "Disetujui");
-  };
-
-  const handleReject = (id) => {
-    handleUpdateStatus(id, "Ditolak");
-  };
+  const handleApprove = (id) => handleUpdateStatus(id, "APPROVED");
+  const handleReject = (id) => handleUpdateStatus(id, "REJECTED");
 
   return (
     <>
       <div className="mb-6">
-        <h2 className="text-2xl font-semibold text-black ">
-          Manajemen Pengajuan Cuti
-        </h2>
-        <p className="mt-1 text-gray-600 dark:text-gray-400">
+        <h1 className="page-title">Manajemen Pengajuan Cuti</h1>
+        <p className="page-subtitle">
           Setujui atau tolak pengajuan cuti dari karyawan Anda.
         </p>
       </div>
 
       {isLoading ? (
-        <p>Loading...</p>
+        <div className="flex justify-center py-20">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary-200 border-t-primary-600" />
+        </div>
       ) : (
         <LeaveRequestTable
           leaveRequests={leaveRequests}

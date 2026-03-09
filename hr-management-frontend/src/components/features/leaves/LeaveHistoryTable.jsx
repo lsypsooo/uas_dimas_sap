@@ -1,34 +1,31 @@
-import React from "react";
+import { HiOutlineCalendar } from "react-icons/hi";
 
-// Komponen StatusBadge disesuaikan dengan status baru
 const StatusBadge = ({ status }) => {
-  const baseClasses =
-    "rounded-full py-1 px-3 text-xs font-medium text-white capitalize";
-  let colorClass = "bg-gray-400";
-  switch (status?.toLowerCase()) {
-    case "approved":
-    case "disetujui":
-      colorClass = "bg-green-500";
-      break;
-    case "rejected":
-    case "ditolak":
-      colorClass = "bg-red-500";
-      break;
-    case "pending":
-    case "menunggu":
-      colorClass = "bg-yellow-500";
-      break;
-  }
+  const config = {
+    approved: "bg-emerald-50 text-emerald-700",
+    disetujui: "bg-emerald-50 text-emerald-700",
+    rejected: "bg-red-50 text-red-700",
+    ditolak: "bg-red-50 text-red-700",
+    pending: "bg-amber-50 text-amber-700",
+    menunggu: "bg-amber-50 text-amber-700",
+  };
+  const colorClass =
+    config[status?.toLowerCase()] || "bg-slate-100 text-slate-600";
   return (
-    <span className={`${baseClasses} ${colorClass}`}>{status || "N/A"}</span>
+    <span
+      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ${colorClass}`}
+    >
+      {status || "N/A"}
+    </span>
   );
 };
 
 const LeaveHistoryTable = ({ leaveHistory, onCancel }) => {
   if (!Array.isArray(leaveHistory) || leaveHistory.length === 0) {
     return (
-      <div className="mt-8 text-center">
-        <p className="font-medium text-gray-600 dark:text-gray-400">
+      <div className="mt-8 card p-10 text-center">
+        <HiOutlineCalendar className="mx-auto h-12 w-12 text-slate-300" />
+        <p className="mt-3 text-sm font-medium text-slate-500">
           Anda belum pernah mengajukan cuti.
         </p>
       </div>
@@ -36,63 +33,61 @@ const LeaveHistoryTable = ({ leaveHistory, onCancel }) => {
   }
 
   return (
-    <div className="mt-8 rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
-      <div className="py-6 px-4 md:px-6 xl:px-7.5">
-        <h4 className="text-xl font-semibold text-black ">
+    <div className="mt-8 card overflow-hidden">
+      <div className="px-6 py-5 border-b border-slate-200">
+        <h4 className="text-lg font-semibold text-slate-900">
           Riwayat Pengajuan Cuti Anda
         </h4>
       </div>
-      <div className="max-w-full overflow-x-auto">
-        <table className="w-full table-auto">
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
           <thead>
-            <tr className="bg-gray-2 text-left dark:bg-meta-4">
-              <th className="min-w-[150px] py-4 px-4 font-medium text-black ">
+            <tr className="border-b border-slate-200 bg-slate-50 text-left">
+              <th className="px-6 py-3.5 font-semibold text-slate-600">
                 Tanggal Mulai
               </th>
-              <th className="min-w-[150px] py-4 px-4 font-medium text-black ">
+              <th className="px-6 py-3.5 font-semibold text-slate-600">
                 Tanggal Selesai
               </th>
-              <th className="min-w-[250px] py-4 px-4 font-medium text-black ">
+              <th className="px-6 py-3.5 font-semibold text-slate-600">
                 Alasan
               </th>
-              <th className="min-w-[120px] py-4 px-4 font-medium text-black ">
+              <th className="px-6 py-3.5 font-semibold text-slate-600">
                 Status
               </th>
-              <th className="py-4 px-4 font-medium text-black ">Aksi</th>
+              <th className="px-6 py-3.5 font-semibold text-slate-600 text-right">
+                Aksi
+              </th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y divide-slate-100">
             {leaveHistory.map((request) => (
-              <tr key={request.id}>
-                <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
-                  <p className="text-black ">
-                    {new Date(request.tanggalMulai).toLocaleDateString("id-ID")}
-                  </p>
+              <tr
+                key={request.id}
+                className="hover:bg-slate-50/50 transition-colors"
+              >
+                <td className="px-6 py-4 text-slate-600">
+                  {new Date(request.tanggalMulai).toLocaleDateString("id-ID")}
                 </td>
-                <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
-                  <p className="text-black ">
-                    {new Date(request.tanggalSelesai).toLocaleDateString(
-                      "id-ID"
-                    )}
-                  </p>
+                <td className="px-6 py-4 text-slate-600">
+                  {new Date(request.tanggalSelesai).toLocaleDateString("id-ID")}
                 </td>
-                <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
-                  <p className="text-black ">{request.alasan}</p>
+                <td className="px-6 py-4 text-slate-600 max-w-[250px] truncate">
+                  {request.alasan}
                 </td>
-                <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
+                <td className="px-6 py-4">
                   <StatusBadge status={request.status} />
                 </td>
-                <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
-                  {/* Tampilkan tombol cancel hanya jika status PENDING */}
+                <td className="px-6 py-4 text-right">
                   {request.status?.toLowerCase() === "pending" ? (
                     <button
                       onClick={() => onCancel(request.id)}
-                      className="text-red-500 hover:text-red-700 text-sm"
+                      className="text-xs font-medium text-red-600 hover:text-red-700"
                     >
                       Batalkan
                     </button>
                   ) : (
-                    <span>-</span>
+                    <span className="text-slate-400">-</span>
                   )}
                 </td>
               </tr>

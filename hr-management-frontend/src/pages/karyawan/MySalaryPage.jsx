@@ -10,11 +10,9 @@ const MySalaryPage = () => {
     const fetchMySalary = async () => {
       setIsLoading(true);
       try {
-        // Asumsi endpoint ini ada di backend untuk mengambil gaji user yg login
-        const response = await apiClient.get("/gaji/my");
+        const response = await apiClient.get("/gaji/me");
         setSalaryHistory(response.data.data || response.data);
-      } catch (error) {
-        console.error("Gagal mengambil riwayat gaji:", error);
+      } catch {
         setSalaryHistory([]);
       } finally {
         setIsLoading(false);
@@ -27,16 +25,16 @@ const MySalaryPage = () => {
   return (
     <>
       <div className="mb-6">
-        <h2 className="text-2xl font-semibold text-black dark:text-white">
-          Riwayat Gaji Saya
-        </h2>
-        <p className="mt-1 text-gray-600 dark:text-gray-400">
+        <h1 className="page-title">Riwayat Gaji Saya</h1>
+        <p className="page-subtitle">
           Berikut adalah daftar gaji yang telah Anda terima.
         </p>
       </div>
 
       {isLoading ? (
-        <p>Loading...</p>
+        <div className="flex justify-center py-20">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary-200 border-t-primary-600" />
+        </div>
       ) : (
         <SalaryHistoryTable salaryHistory={salaryHistory} />
       )}

@@ -1,6 +1,4 @@
-// File: controllers/user.controller.js (KODE FINAL YANG BENAR)
-const { PrismaClient } = require("@prisma/client");
-const prisma = new PrismaClient();
+const prisma = require("../lib/prisma");
 const bcrypt = require("bcrypt");
 
 const getAllUsers = async (req, res) => {

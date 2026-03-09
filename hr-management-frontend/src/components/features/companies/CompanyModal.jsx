@@ -1,6 +1,6 @@
-// src/components/features/companies/CompanyModal.jsx
-
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { toast } from "react-toastify";
+import { HiOutlineX } from "react-icons/hi";
 
 const CompanyModal = ({ isOpen, onClose, onSave, companyToEdit }) => {
   const [formData, setFormData] = useState({
@@ -9,8 +9,9 @@ const CompanyModal = ({ isOpen, onClose, onSave, companyToEdit }) => {
     telepon: "",
     email: "",
   });
+  const [isSaving, setIsSaving] = useState(false);
+  const modalRef = useRef(null);
 
-  // useEffect ini akan mengisi form jika kita dalam mode 'edit'
   useEffect(() => {
     if (companyToEdit) {
       setFormData({
@@ -20,41 +21,68 @@ const CompanyModal = ({ isOpen, onClose, onSave, companyToEdit }) => {
         email: companyToEdit.email,
       });
     } else {
-      // Reset form jika kita dalam mode 'tambah'
       setFormData({ nama: "", alamat: "", telepon: "", email: "" });
     }
-  }, [companyToEdit, isOpen]); // Dijalankan saat companyToEdit atau isOpen berubah
+  }, [companyToEdit, isOpen]);
 
-  if (!isOpen) {
-    return null;
-  }
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleEscape = (e) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", handleEscape);
+    modalRef.current?.focus();
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [isOpen, onClose]);
+
+  if (!isOpen) return null;
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prevData) => ({ ...prevData, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.nama || !formData.alamat) {
-      alert("semua field wajib di isi.");
+      toast.warn("Semua field wajib diisi.");
       return;
     }
-    // Kirim data ke parent component (CompanyPage)
-    onSave(formData);
+    setIsSaving(true);
+    try {
+      await onSave(formData);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
-    // Modal Overlay
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 ">
-      {/* Modal Content */}
-      <div className="w-full max-w-lg rounded-lg bg-white p-6 shadow-lg dark:bg-boxdark text-black">
-        <h2 className="mb-4 text-xl font-bold text-black dark:text-black">
-          {companyToEdit ? "Edit Perusahaan" : "Tambah Perusahaan Baru"}
-        </h2>
-        <form onSubmit={handleSubmit} className="text-black">
-          <div className="mb-4">
-            <label htmlFor="nama" className="mb-2 block text-black ">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+      role="dialog"
+      aria-modal="true"
+      aria-label={companyToEdit ? "Edit Perusahaan" : "Tambah Perusahaan Baru"}
+    >
+      <div
+        ref={modalRef}
+        tabIndex={-1}
+        className="card w-full max-w-lg p-0 shadow-xl animate-in fade-in"
+      >
+        <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
+          <h2 className="text-lg font-semibold text-slate-900">
+            {companyToEdit ? "Edit Perusahaan" : "Tambah Perusahaan Baru"}
+          </h2>
+          <button onClick={onClose} className="btn-ghost !p-1.5 !rounded-lg">
+            <HiOutlineX className="h-5 w-5" />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          <div>
+            <label htmlFor="nama" className="label">
               Nama Perusahaan
             </label>
             <input
@@ -63,12 +91,13 @@ const CompanyModal = ({ isOpen, onClose, onSave, companyToEdit }) => {
               name="nama"
               value={formData.nama}
               onChange={handleChange}
-              className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
+              className="input"
+              required
             />
           </div>
-          <div className="mb-4">
-            <label htmlFor="telepon" className="mb-2 block text-black ">
-              No telepon
+          <div>
+            <label htmlFor="telepon" className="label">
+              No Telepon
             </label>
             <input
               type="text"
@@ -76,24 +105,24 @@ const CompanyModal = ({ isOpen, onClose, onSave, companyToEdit }) => {
               name="telepon"
               value={formData.telepon}
               onChange={handleChange}
-              className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
+              className="input"
             />
           </div>
-          <div className="mb-4">
-            <label htmlFor="email" className="mb-2 block text-black ">
+          <div>
+            <label htmlFor="email" className="label">
               Email
             </label>
             <input
-              type="text"
+              type="email"
               id="email"
               name="email"
               value={formData.email}
               onChange={handleChange}
-              className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
+              className="input"
             />
           </div>
-          <div className="mb-6">
-            <label htmlFor="alamat" className="mb-2 block text-black ">
+          <div>
+            <label htmlFor="alamat" className="label">
               Alamat
             </label>
             <textarea
@@ -102,22 +131,17 @@ const CompanyModal = ({ isOpen, onClose, onSave, companyToEdit }) => {
               name="alamat"
               value={formData.alamat}
               onChange={handleChange}
-              className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
-            ></textarea>
+              className="input"
+              required
+            />
           </div>
-          <div className="flex justify-end gap-4">
-            <button
-              type="button"
-              onClick={onClose}
-              className="rounded bg-gray-300 py-2 px-4 font-medium text-black hover:bg-gray-400 dark:bg-gray-600 dark:text-white dark:hover:bg-gray-700"
-            >
+
+          <div className="flex justify-end gap-3 pt-2">
+            <button type="button" onClick={onClose} className="btn-secondary">
               Batal
             </button>
-            <button
-              type="submit"
-              className="rounded bg-primary py-2 px-4 font-medium text-black hover:bg-opacity-90"
-            >
-              Simpan
+            <button type="submit" disabled={isSaving} className="btn-primary">
+              {isSaving ? "Menyimpan..." : "Simpan"}
             </button>
           </div>
         </form>

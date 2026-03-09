@@ -3,7 +3,7 @@ import axios from "axios";
 
 // Buat instance axios dengan konfigurasi dasar
 const apiClient = axios.create({
-  baseURL: "http://localhost:3000/api", // PASTIKAN PORT INI SESUAI DENGAN BACKEND ANDA
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:3000/api",
   headers: {
     "Content-Type": "application/json",
   },
@@ -27,7 +27,20 @@ apiClient.interceptors.request.use(
   (error) => {
     // Jika ada error saat konfigurasi request, tolak promise-nya
     return Promise.reject(error);
-  }
+  },
+);
+
+// Response interceptor: handle token expired (401)
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem("authToken");
+      localStorage.removeItem("user");
+      window.location.href = "/login";
+    }
+    return Promise.reject(error);
+  },
 );
 
 export default apiClient;

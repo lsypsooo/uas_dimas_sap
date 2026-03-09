@@ -1,5 +1,4 @@
-const { PrismaClient } = require("@prisma/client");
-const prisma = new PrismaClient();
+const prisma = require("../lib/prisma");
 
 const getAllCuti = async (req, res) => {
   const { perusahaanId, role, karyawan } = req.user;
@@ -28,7 +27,9 @@ const getAllCuti = async (req, res) => {
         },
       });
     } else if (role === "KARYAWAN") {
-      // Karyawan hanya melihat cuti sendiri
+      if (!karyawan) {
+        return res.status(403).json({ error: "Anda tidak terdaftar sebagai karyawan" });
+      }
       cutiList = await prisma.cuti.findMany({
         where: { karyawanId: karyawan.id },
         orderBy: {
@@ -174,7 +175,10 @@ const deleteCuti = async (req, res) => {
   const { id } = req.params;
 
   try {
-    // Cek apakah cuti ada
+    if (role === "KARYAWAN" && !karyawan) {
+      return res.status(403).json({ error: "Anda tidak terdaftar sebagai karyawan" });
+    }
+
     const cuti = await prisma.cuti.findUnique({
       where: { id: parseInt(id) },
     });

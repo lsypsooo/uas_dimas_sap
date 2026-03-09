@@ -1,6 +1,4 @@
-const { PrismaClient } = require("@prisma/client");
-const prisma = new PrismaClient();
-const bcrypt = require("bcrypt");
+const prisma = require("../lib/prisma");
 
 const createGaji = async (req, res) => {
   const { perusahaanId } = req.user;
@@ -73,6 +71,9 @@ const getGajiByKaryawan = async (req, res) => {
 
     // Untuk karyawan, hanya bisa melihat gaji sendiri
     if (req.user.role === "KARYAWAN") {
+      if (!req.user.karyawan) {
+        return res.status(403).json({ error: "Anda tidak terdaftar sebagai karyawan" });
+      }
       if (parseInt(karyawanId) !== req.user.karyawan.id) {
         return res
           .status(403)

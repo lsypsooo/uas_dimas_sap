@@ -1,10 +1,10 @@
-import React, { useState } from "react";
+import { useState } from "react";
+import { toast } from "react-toastify";
+import { HiOutlineCurrencyDollar } from "react-icons/hi";
 
 const SalaryTable = ({ employees, onSaveSalary }) => {
-  // State untuk menyimpan nilai dari input manual untuk setiap karyawan
   const [manualInputs, setManualInputs] = useState({});
 
-  // Fungsi untuk menangani perubahan pada input manual
   const handleInputChange = (employeeId, field, value) => {
     setManualInputs((prevInputs) => ({
       ...prevInputs,
@@ -15,7 +15,6 @@ const SalaryTable = ({ employees, onSaveSalary }) => {
     }));
   };
 
-  // Fungsi yang dipanggil saat tombol "Simpan" diklik
   const handleSaveClick = (employeeId) => {
     const inputData = manualInputs[employeeId];
     if (
@@ -24,24 +23,23 @@ const SalaryTable = ({ employees, onSaveSalary }) => {
       !inputData.bulan ||
       !inputData.tahun
     ) {
-      alert("Jumlah, Bulan, dan Tahun harus diisi.");
+      toast.warn("Jumlah, Bulan, dan Tahun harus diisi.");
       return;
     }
-    // Panggil fungsi onSaveSalary dari parent dengan data lengkap
     onSaveSalary({
       karyawanId: employeeId,
       jumlah: parseInt(inputData.jumlah, 10),
       bulan: parseInt(inputData.bulan, 10),
       tahun: parseInt(inputData.tahun, 10),
     });
-    // Kosongkan input setelah disimpan
     setManualInputs((prev) => ({ ...prev, [employeeId]: {} }));
   };
 
   if (!Array.isArray(employees) || employees.length === 0) {
     return (
-      <div className="rounded-sm border border-stroke bg-white px-5 py-10 text-center shadow-default dark:border-strokedark dark:bg-boxdark">
-        <p className="font-medium text-black ">
+      <div className="card p-10 text-center">
+        <HiOutlineCurrencyDollar className="mx-auto h-12 w-12 text-slate-300" />
+        <p className="mt-3 text-sm font-medium text-slate-500">
           Data karyawan tidak ditemukan. Tambahkan karyawan terlebih dahulu.
         </p>
       </div>
@@ -66,44 +64,49 @@ const SalaryTable = ({ employees, onSaveSalary }) => {
   const years = Array.from({ length: 5 }, (_, i) => currentYear - i);
 
   return (
-    <div className="rounded-sm border border-stroke bg-white px-5 pt-6 pb-2.5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:pb-1">
-      <div className="max-w-full overflow-x-auto">
-        <table className="w-full table-auto">
+    <div className="card overflow-hidden">
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
           <thead>
-            <tr className="bg-gray-2 text-left dark:bg-meta-4">
-              <th className="min-w-[220px] py-4 px-4 font-medium text-black  xl:pl-11">
+            <tr className="border-b border-slate-200 bg-slate-50 text-left">
+              <th className="px-6 py-3.5 font-semibold text-slate-600">
                 Nama Karyawan
               </th>
-              <th className="min-w-[150px] py-4 px-4 font-medium text-black ">
+              <th className="px-6 py-3.5 font-semibold text-slate-600">
                 Gaji Terakhir
               </th>
-              <th className="min-w-[200px] py-4 px-4 font-medium text-black ">
+              <th className="px-6 py-3.5 font-semibold text-slate-600">
                 Input Gaji Baru (Rp)
               </th>
-              <th className="min-w-[150px] py-4 px-4 font-medium text-black ">
+              <th className="px-6 py-3.5 font-semibold text-slate-600">
                 Bulan
               </th>
-              <th className="min-w-[120px] py-4 px-4 font-medium text-black ">
+              <th className="px-6 py-3.5 font-semibold text-slate-600">
                 Tahun
               </th>
-              <th className="py-4 px-4 font-medium text-black ">Aksi</th>
+              <th className="px-6 py-3.5 font-semibold text-slate-600">Aksi</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y divide-slate-100">
             {employees.map((employee) => {
-              const latestSalary = employee.gaji?.[0];
+              const latestSalary = employee.gajis?.[0];
               const currentInput = manualInputs[employee.id] || {};
 
               return (
-                <tr key={employee.id}>
-                  <td className="border-b border-[#eee] py-5 px-4 pl-9 dark:border-strokedark xl:pl-11">
-                    <h5 className="font-medium text-black ">
+                <tr
+                  key={employee.id}
+                  className="hover:bg-slate-50/50 transition-colors"
+                >
+                  <td className="px-6 py-4">
+                    <p className="font-medium text-slate-900">
                       {employee.user?.username || "N/A"}
-                    </h5>
-                    <p className="text-sm">{employee.jabatan || ""}</p>
+                    </p>
+                    <p className="text-xs text-slate-500">
+                      {employee.jabatan || ""}
+                    </p>
                   </td>
-                  <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
-                    <p className="text-black ">
+                  <td className="px-6 py-4">
+                    <p className="text-slate-900">
                       {latestSalary?.jumlah
                         ? new Intl.NumberFormat("id-ID", {
                             style: "currency",
@@ -111,16 +114,13 @@ const SalaryTable = ({ employees, onSaveSalary }) => {
                           }).format(latestSalary.jumlah)
                         : "Belum diatur"}
                     </p>
-                    <p className="text-sm">
+                    <p className="text-xs text-slate-500">
                       {latestSalary
-                        ? `${monthNames[latestSalary.bulan - 1]} ${
-                            latestSalary.tahun
-                          }`
+                        ? `${monthNames[latestSalary.bulan - 1]} ${latestSalary.tahun}`
                         : ""}
                     </p>
                   </td>
-                  {/* Kolom Input Manual */}
-                  <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
+                  <td className="px-6 py-4">
                     <input
                       type="number"
                       placeholder="e.g., 5000000"
@@ -128,53 +128,45 @@ const SalaryTable = ({ employees, onSaveSalary }) => {
                       onChange={(e) =>
                         handleInputChange(employee.id, "jumlah", e.target.value)
                       }
-                      className="w-full rounded border-[1.5px] border-stroke bg-transparent py-2 px-3"
+                      className="input"
                     />
                   </td>
-                  <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
+                  <td className="px-6 py-4">
                     <select
                       value={currentInput.bulan || ""}
                       onChange={(e) =>
                         handleInputChange(employee.id, "bulan", e.target.value)
                       }
-                      className="w-full rounded border-[1.5px] border-stroke bg-transparent py-2 px-3 text-black "
+                      className="input"
                     >
                       <option value="">Pilih Bulan</option>
                       {monthNames.map((month, index) => (
-                        <option
-                          key={index}
-                          value={index + 1}
-                          className="text-bodydark2"
-                        >
+                        <option key={index} value={index + 1}>
                           {month}
                         </option>
                       ))}
                     </select>
                   </td>
-                  <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
+                  <td className="px-6 py-4">
                     <select
                       value={currentInput.tahun || ""}
                       onChange={(e) =>
                         handleInputChange(employee.id, "tahun", e.target.value)
                       }
-                      className="w-full rounded border-[1.5px] border-stroke bg-transparent py-2 px-3 text-black "
+                      className="input"
                     >
                       <option value="">Pilih Tahun</option>
                       {years.map((year) => (
-                        <option
-                          key={year}
-                          value={year}
-                          className="text-bodydark2"
-                        >
+                        <option key={year} value={year}>
                           {year}
                         </option>
                       ))}
                     </select>
                   </td>
-                  <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
+                  <td className="px-6 py-4">
                     <button
                       onClick={() => handleSaveClick(employee.id)}
-                      className="rounded bg-primary py-2 px-4 font-medium text-black hover:bg-opacity-90"
+                      className="btn-primary !py-2 !px-4 !text-xs"
                     >
                       Simpan
                     </button>

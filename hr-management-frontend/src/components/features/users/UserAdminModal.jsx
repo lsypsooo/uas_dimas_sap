@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { toast } from "react-toastify";
+import { HiOutlineX } from "react-icons/hi";
 import apiClient from "../../../services/api";
 
 const UserAdminModal = ({ isOpen, onClose, onSave, userToEdit }) => {
-  // Menggunakan 'username' dan 'perusahaanId' sesuai controller
   const initialFormData = {
     username: "",
     email: "",
@@ -11,17 +12,15 @@ const UserAdminModal = ({ isOpen, onClose, onSave, userToEdit }) => {
   };
   const [formData, setFormData] = useState(initialFormData);
   const [companies, setCompanies] = useState([]);
+  const [isSaving, setIsSaving] = useState(false);
+  const modalRef = useRef(null);
 
   useEffect(() => {
     if (isOpen) {
       apiClient
         .get("/perusahaan")
-        .then((response) => {
-          setCompanies(response.data);
-        })
-        .catch((error) =>
-          console.error("Gagal mengambil daftar perusahaan:", error)
-        );
+        .then((response) => setCompanies(response.data))
+        .catch(() => toast.error("Gagal mengambil daftar perusahaan."));
     }
   }, [isOpen]);
 
@@ -39,6 +38,16 @@ const UserAdminModal = ({ isOpen, onClose, onSave, userToEdit }) => {
     }
   }, [userToEdit, isOpen]);
 
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleEscape = (e) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", handleEscape);
+    modalRef.current?.focus();
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   const handleChange = (e) => {
@@ -46,103 +55,107 @@ const UserAdminModal = ({ isOpen, onClose, onSave, userToEdit }) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // --- VALIDASI DITAMBAHKAN DI SINI ---
     if (!formData.username || !formData.email || !formData.perusahaanId) {
-      alert("Username, Email, dan Perusahaan harus diisi.");
-      return; // Hentikan proses jika validasi gagal
+      toast.warn("Username, Email, dan Perusahaan harus diisi.");
+      return;
     }
-    // Pastikan password diisi saat membuat user baru
     if (!userToEdit && !formData.password) {
-      alert("Password harus diisi untuk user baru.");
-      return; // Hentikan proses
+      toast.warn("Password harus diisi untuk user baru.");
+      return;
     }
-    // --- AKHIR VALIDASI ---
-
-    onSave(formData);
+    setIsSaving(true);
+    try {
+      await onSave(formData);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-      <div className="w-full max-w-lg rounded-lg bg-white p-6 shadow-lg dark:bg-boxdark">
-        <h2 className="mb-4 text-xl font-bold text-black  ">
-          {userToEdit ? "Edit User Admin" : "Tambah User Admin Baru"}
-        </h2>
-        <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <label className="mb-2 block text-black  ">Username</label>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+      role="dialog"
+      aria-modal="true"
+      aria-label={userToEdit ? "Edit User Admin" : "Tambah User Admin Baru"}
+    >
+      <div
+        ref={modalRef}
+        tabIndex={-1}
+        className="card w-full max-w-lg p-0 shadow-xl"
+      >
+        <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
+          <h2 className="text-lg font-semibold text-slate-900">
+            {userToEdit ? "Edit User Admin" : "Tambah User Admin Baru"}
+          </h2>
+          <button onClick={onClose} className="btn-ghost !p-1.5 !rounded-lg">
+            <HiOutlineX className="h-5 w-5" />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          <div>
+            <label className="label">Username</label>
             <input
               type="text"
-              name="username" // Menggunakan 'username'
+              name="username"
               value={formData.username}
               onChange={handleChange}
-              className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary"
+              className="input"
               required
             />
           </div>
-          <div className="mb-4">
-            <label className="mb-2 block text-black  ">Email</label>
+          <div>
+            <label className="label">Email</label>
             <input
               type="email"
               name="email"
               value={formData.email}
               onChange={handleChange}
-              className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary"
+              className="input"
               required
             />
           </div>
-          <div className="mb-4">
-            <label className="mb-2 block text-black  ">Password</label>
+          <div>
+            <label className="label">Password</label>
             <input
               type="password"
               name="password"
               value={formData.password}
               onChange={handleChange}
-              className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary"
+              className="input"
               placeholder={userToEdit ? "Isi untuk mengubah" : ""}
               required={!userToEdit}
             />
           </div>
-
-          <div className="mb-6">
-            <label className="mb-2 block text-black  ">Pilih Perusahaan</label>
+          <div>
+            <label className="label">Pilih Perusahaan</label>
             <select
-              name="perusahaanId" // Menggunakan 'perusahaanId'
+              name="perusahaanId"
               value={formData.perusahaanId}
               onChange={handleChange}
-              className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary text-black  "
+              className="input"
               required
             >
-              <option value="" className="text-bodydark2">
-                -- Pilih Perusahaan --
-              </option>
+              <option value="">-- Pilih Perusahaan --</option>
               {companies.map((company) => (
-                <option
-                  key={company.id}
-                  value={company.id}
-                  className="text-bodydark2"
-                >
+                <option key={company.id} value={company.id}>
                   {company.nama}
                 </option>
               ))}
             </select>
           </div>
 
-          <div className="flex justify-end gap-4">
-            <button
-              type="button"
-              onClick={onClose}
-              className="rounded bg-gray-300 py-2 px-4 font-medium text-black hover:bg-gray-400 dark:bg-gray-600   dark:hover:bg-gray-700"
-            >
+          <div className="flex justify-end gap-3 pt-2">
+            <button type="button" onClick={onClose} className="btn-secondary">
               Batal
             </button>
-            <button
-              type="submit"
-              className="rounded bg-primary py-2 px-4 font-medium text-white hover:bg-opacity-90"
-            >
-              Simpan
+            <button type="submit" disabled={isSaving} className="btn-primary">
+              {isSaving ? "Menyimpan..." : "Simpan"}
             </button>
           </div>
         </form>

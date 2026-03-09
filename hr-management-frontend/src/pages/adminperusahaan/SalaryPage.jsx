@@ -1,16 +1,11 @@
 import { useState, useEffect } from "react";
+import { toast } from "react-toastify";
 import apiClient from "../../services/api";
 import SalaryTable from "../../components/features/salaries/SalaryTable";
-// Kita tidak lagi memerlukan SalaryModal di halaman ini
-// import SalaryModal from '../../components/features/salaries/SalaryModal';
 
 const SalaryPage = () => {
   const [employees, setEmployees] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-
-  // State untuk modal tidak lagi diperlukan
-  // const [isModalOpen, setIsModalOpen] = useState(false);
-  // const [selectedEmployee, setSelectedEmployee] = useState(null);
 
   const fetchEmployeesWithSalaries = async () => {
     setIsLoading(true);
@@ -18,7 +13,7 @@ const SalaryPage = () => {
       const response = await apiClient.get("/karyawan");
       setEmployees(response.data.data || response.data);
     } catch (error) {
-      console.error("Gagal mengambil data karyawan:", error);
+      toast.error(error.response?.data?.error || "Gagal mengambil data karyawan.");
       setEmployees([]);
     } finally {
       setIsLoading(false);
@@ -29,42 +24,32 @@ const SalaryPage = () => {
     fetchEmployeesWithSalaries();
   }, []);
 
-  // Fungsi handle modal tidak lagi diperlukan
-  // const handleOpenManageModal = (employee) => { ... };
-  // const handleCloseModal = () => { ... };
-
-  // Fungsi ini sekarang akan dipanggil langsung dari tabel
   const handleSaveSalary = async (formData) => {
     try {
       await apiClient.post("/gaji", formData);
-      alert("Data gaji berhasil disimpan.");
-      // Tidak perlu menutup modal, cukup refresh data tabel
+      toast.success("Data gaji berhasil disimpan.");
       fetchEmployeesWithSalaries();
     } catch (error) {
-      console.error("Gagal menyimpan data gaji:", error);
-      alert(error.response?.data?.error || "Gagal menyimpan data gaji.");
+      toast.error(error.response?.data?.error || "Gagal menyimpan data gaji.");
     }
   };
 
   return (
     <>
       <div className="mb-6">
-        <h2 className="text-2xl font-semibold text-black dark:text-white">
-          Manajemen Gaji Karyawan
-        </h2>
-        <p className="mt-1 text-gray-600 dark:text-gray-400">
+        <h1 className="page-title">Manajemen Gaji Karyawan</h1>
+        <p className="page-subtitle">
           Input gaji baru untuk setiap karyawan per periode.
         </p>
       </div>
 
       {isLoading ? (
-        <p>Loading...</p>
+        <div className="flex justify-center py-20">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary-200 border-t-primary-600" />
+        </div>
       ) : (
-        // Berikan fungsi handleSaveSalary ke SalaryTable melalui prop onSaveSalary
         <SalaryTable employees={employees} onSaveSalary={handleSaveSalary} />
       )}
-
-      {/* Komponen SalaryModal tidak lagi dirender di sini */}
     </>
   );
 };

@@ -10,13 +10,14 @@ import UnauthorizedPage from "./pages/UnauthorizedPage"; // Impor halaman baru
 import CompanyPage from "./pages/superadmin/CompanyPage";
 import UserAdminPage from "./pages/superadmin/UserAdminPage";
 // Import Layout & Pelindung Rute
-import DefaultLayout from "./layout/defaultLayout";
+import DefaultLayout from "./layout/DefaultLayout";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import EmployeePage from "./pages/adminperusahaan/EmployeePage";
 import SalaryPage from "./pages/adminperusahaan/SalaryPage";
 import LeaveManagementPage from "./pages/adminperusahaan/LeaveManagementPage";
 import MySalaryPage from "./pages/karyawan/MySalaryPage";
 import LeaveRequestPage from "./pages/karyawan/LeaveRequestPage";
+import ProfilePage from "./pages/ProfilePage";
 
 function App() {
   return (
@@ -35,7 +36,7 @@ function App() {
         </Route>
 
         {/* --- Rute Khusus Admin Perusahaan --- */}
-        <Route element={<ProtectedRoute allowedRoles={["admin perusahaan"]} />}>
+        <Route element={<ProtectedRoute allowedRoles={["admin_perusahaan"]} />}>
           <Route path="/employees" element={<EmployeePage />} />
           <Route path="/salaries" element={<SalaryPage />} />
           <Route path="/leaves" element={<LeaveManagementPage />} />
@@ -54,12 +55,12 @@ function App() {
         <Route
           element={
             <ProtectedRoute
-              allowedRoles={["superadmin", "admin perusahaan", "karyawan"]}
+              allowedRoles={["superadmin", "admin_perusahaan", "karyawan"]}
             />
           }
         >
           <Route path="/dashboard" element={<DashboardPage />} />
-          {/* <Route path="/profile" element={<ProfilePage />} /> */}
+          <Route path="/profile" element={<ProfilePage />} />
         </Route>
 
         {/* Rute default saat mengakses "/" */}
