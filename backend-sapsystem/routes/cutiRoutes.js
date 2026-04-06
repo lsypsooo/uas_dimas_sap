@@ -6,28 +6,35 @@ const cutiController = require("../controllers/cutiController");
 
 router.use(authenticate);
 
+// Leave balance for karyawan
+router.get("/balance", roleCheck(["KARYAWAN"]), cutiController.getLeaveBalance);
+
 // Admin perusahaan routes
 router.get(
   "/",
   roleCheck(["ADMIN_PERUSAHAAN", "KARYAWAN"]),
-  cutiController.getAllCuti
+  cutiController.getAllCuti,
 );
 
 // Karyawan routes
-router.post("/", roleCheck(["ADMIN_PERUSAHAAN","KARYAWAN"]), cutiController.createCuti);
+router.post(
+  "/",
+  roleCheck(["ADMIN_PERUSAHAAN", "KARYAWAN"]),
+  cutiController.createCuti,
+);
 
 // Admin approve/reject cuti
 router.put(
   "/:id/status",
   roleCheck(["ADMIN_PERUSAHAAN"]),
-  cutiController.updateStatusCuti
+  cutiController.updateStatusCuti,
 );
 
 // Delete cuti (admin bisa hapus semua, karyawan hanya hapus sendiri yang pending)
 router.delete(
   "/:id",
   roleCheck(["ADMIN_PERUSAHAAN", "KARYAWAN"]),
-  cutiController.deleteCuti
+  cutiController.deleteCuti,
 );
 
 module.exports = router;

@@ -4,12 +4,27 @@ import { HiOutlinePlus } from "react-icons/hi";
 import apiClient from "../../services/api";
 import CompanyTable from "../../components/features/companies/CompanyTable";
 import CompanyModal from "../../components/features/companies/CompanyModal";
+import {
+  useSearchPagination,
+  SearchBar,
+  Pagination,
+} from "../../components/SearchPagination";
 
 const CompanyPage = () => {
   const [companies, setCompanies] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCompany, setEditingCompany] = useState(null);
+  const {
+    searchQuery,
+    setSearchQuery,
+    currentPage,
+    setCurrentPage,
+    paginated,
+    totalPages,
+    total,
+    filteredTotal,
+  } = useSearchPagination(companies, ["nama", "alamat", "email", "telepon"]);
 
   const fetchCompanies = async () => {
     setIsLoading(true);
@@ -88,11 +103,27 @@ const CompanyPage = () => {
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary-200 border-t-primary-600" />
         </div>
       ) : (
-        <CompanyTable
-          companies={companies}
-          onEdit={handleOpenEditModal}
-          onDelete={handleDelete}
-        />
+        <>
+          <div className="mb-4">
+            <SearchBar
+              value={searchQuery}
+              onChange={setSearchQuery}
+              placeholder="Cari perusahaan..."
+            />
+          </div>
+          <CompanyTable
+            companies={paginated}
+            onEdit={handleOpenEditModal}
+            onDelete={handleDelete}
+          />
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            filteredTotal={filteredTotal}
+            total={total}
+          />
+        </>
       )}
 
       <CompanyModal

@@ -45,6 +45,7 @@ model Karyawan {
   id          Int       @id @default(autoincrement())
   jabatan     String
   departemen  String
+  jatahCuti   Int       @default(12)
   user        User      @relation(fields: [userId], references: [id])
   userId      Int       @unique
   perusahaan  Perusahaan @relation(fields: [perusahaanId], references: [id])

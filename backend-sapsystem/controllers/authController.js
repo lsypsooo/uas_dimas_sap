@@ -24,7 +24,7 @@ const login = async (req, res) => {
     const token = jwt.sign(
       { id: user.id, role: user.role, perusahaanId: user.perusahaanId },
       process.env.JWT_SECRET,
-      { expiresIn: "1d" }
+      { expiresIn: "1d" },
     );
 
     res.json({
@@ -119,4 +119,97 @@ const register = async (req, res) => {
   }
 };
 
-module.exports = { login, register };
+module.exports = { login, register, changePassword, updateProfile };
+
+// Ganti password
+async function changePassword(req, res) {
+  const userId = req.user.id;
+  const { currentPassword, newPassword } = req.body;
+
+  if (!currentPassword || !newPassword) {
+    return res
+      .status(400)
+      .json({ error: "Password lama dan baru wajib diisi." });
+  }
+  if (newPassword.length < 6) {
+    return res.status(400).json({ error: "Password baru minimal 6 karakter." });
+  }
+
+  try {
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ error: "Password lama salah." });
+    }
+
+    const hashed = await bcrypt.hash(newPassword, 10);
+    await prisma.user.update({
+      where: { id: userId },
+      data: { password: hashed },
+    });
+    res.json({ message: "Password berhasil diubah." });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+}
+
+// Update profil (username & email)
+async function updateProfile(req, res) {
+  const userId = req.user.id;
+  const { username, email } = req.body;
+
+  if (!username && !email) {
+    return res.status(400).json({ error: "Tidak ada data yang diubah." });
+  }
+  if (email && !validator.isEmail(email)) {
+    return res.status(400).json({ error: "Format email tidak valid." });
+  }
+
+  try {
+    // Cek duplikat
+    if (email || username) {
+      const conditions = [];
+      if (email) conditions.push({ email });
+      if (username) conditions.push({ username });
+      const existing = await prisma.user.findFirst({
+        where: { OR: conditions, NOT: { id: userId } },
+      });
+      if (existing) {
+        if (existing.email === email)
+          return res.status(400).json({ error: "Email sudah digunakan." });
+        if (existing.username === username)
+          return res.status(400).json({ error: "Username sudah digunakan." });
+      }
+    }
+
+    const updateData = {};
+    if (username) updateData.username = username;
+    if (email) updateData.email = email;
+
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: updateData,
+      select: { id: true, username: true, email: true, role: true },
+    });
+
+    // Re-fetch full user with relations for frontend
+    const fullUser = await prisma.user.findUnique({
+      where: { id: userId },
+      include: { perusahaan: true, karyawan: true },
+    });
+
+    res.json({
+      message: "Profil berhasil diperbarui.",
+      user: {
+        id: fullUser.id,
+        username: fullUser.username,
+        email: fullUser.email,
+        role: fullUser.role,
+        perusahaan: fullUser.perusahaan,
+        karyawan: fullUser.karyawan,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+}

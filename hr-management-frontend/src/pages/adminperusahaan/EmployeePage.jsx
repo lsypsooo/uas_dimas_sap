@@ -4,12 +4,32 @@ import { HiOutlinePlus } from "react-icons/hi";
 import apiClient from "../../services/api";
 import EmployeeTable from "../../components/features/employees/EmployeeTable";
 import EmployeeModal from "../../components/features/employees/EmployeeModal";
+import {
+  useSearchPagination,
+  SearchBar,
+  Pagination,
+} from "../../components/SearchPagination";
 
 const EmployeePage = () => {
   const [employees, setEmployees] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState(null);
+  const {
+    searchQuery,
+    setSearchQuery,
+    currentPage,
+    setCurrentPage,
+    paginated,
+    totalPages,
+    total,
+    filteredTotal,
+  } = useSearchPagination(employees, [
+    "user.username",
+    "user.email",
+    "jabatan",
+    "departemen",
+  ]);
 
   const fetchEmployees = async () => {
     setIsLoading(true);
@@ -17,7 +37,9 @@ const EmployeePage = () => {
       const response = await apiClient.get("/karyawan");
       setEmployees(response.data.data || response.data);
     } catch (error) {
-      toast.error(error.response?.data?.error || "Gagal mengambil data karyawan.");
+      toast.error(
+        error.response?.data?.error || "Gagal mengambil data karyawan.",
+      );
     } finally {
       setIsLoading(false);
     }
@@ -100,11 +122,27 @@ const EmployeePage = () => {
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary-200 border-t-primary-600" />
         </div>
       ) : (
-        <EmployeeTable
-          employees={employees}
-          onEdit={handleOpenEditModal}
-          onDelete={handleDeleteEmployee}
-        />
+        <>
+          <div className="mb-4">
+            <SearchBar
+              value={searchQuery}
+              onChange={setSearchQuery}
+              placeholder="Cari karyawan..."
+            />
+          </div>
+          <EmployeeTable
+            employees={paginated}
+            onEdit={handleOpenEditModal}
+            onDelete={handleDeleteEmployee}
+          />
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            filteredTotal={filteredTotal}
+            total={total}
+          />
+        </>
       )}
 
       <EmployeeModal

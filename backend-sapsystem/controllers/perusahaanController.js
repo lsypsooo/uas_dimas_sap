@@ -39,13 +39,13 @@ const getPerusahaanById = async (req, res) => {
         karyawans: {
           select: {
             id: true,
-             user: {
+            user: {
               select: {
                 id: true,
                 username: true,
                 role: true,
               },
-        },
+            },
           },
         },
       },

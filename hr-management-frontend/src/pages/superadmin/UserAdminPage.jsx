@@ -4,12 +4,27 @@ import { HiOutlinePlus } from "react-icons/hi";
 import apiClient from "../../services/api";
 import UserAdminTable from "../../components/features/users/UserAdminTable";
 import UserAdminModal from "../../components/features/users/UserAdminModal";
+import {
+  useSearchPagination,
+  SearchBar,
+  Pagination,
+} from "../../components/SearchPagination";
 
 const UserAdminPage = () => {
   const [users, setUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
+  const {
+    searchQuery,
+    setSearchQuery,
+    currentPage,
+    setCurrentPage,
+    paginated,
+    totalPages,
+    total,
+    filteredTotal,
+  } = useSearchPagination(users, ["username", "email", "perusahaan.nama"]);
 
   const fetchUserAdmins = async () => {
     setIsLoading(true);
@@ -102,11 +117,27 @@ const UserAdminPage = () => {
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary-200 border-t-primary-600" />
         </div>
       ) : (
-        <UserAdminTable
-          users={users}
-          onEdit={handleOpenEditModal}
-          onDelete={handleDeleteUser}
-        />
+        <>
+          <div className="mb-4">
+            <SearchBar
+              value={searchQuery}
+              onChange={setSearchQuery}
+              placeholder="Cari user admin..."
+            />
+          </div>
+          <UserAdminTable
+            users={paginated}
+            onEdit={handleOpenEditModal}
+            onDelete={handleDeleteUser}
+          />
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            filteredTotal={filteredTotal}
+            total={total}
+          />
+        </>
       )}
 
       <UserAdminModal

@@ -2,10 +2,29 @@ import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import apiClient from "../../services/api";
 import SalaryTable from "../../components/features/salaries/SalaryTable";
+import {
+  useSearchPagination,
+  SearchBar,
+  Pagination,
+} from "../../components/SearchPagination";
 
 const SalaryPage = () => {
   const [employees, setEmployees] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const {
+    searchQuery,
+    setSearchQuery,
+    currentPage,
+    setCurrentPage,
+    paginated,
+    totalPages,
+    total,
+    filteredTotal,
+  } = useSearchPagination(employees, [
+    "user.username",
+    "jabatan",
+    "departemen",
+  ]);
 
   const fetchEmployeesWithSalaries = async () => {
     setIsLoading(true);
@@ -13,7 +32,9 @@ const SalaryPage = () => {
       const response = await apiClient.get("/karyawan");
       setEmployees(response.data.data || response.data);
     } catch (error) {
-      toast.error(error.response?.data?.error || "Gagal mengambil data karyawan.");
+      toast.error(
+        error.response?.data?.error || "Gagal mengambil data karyawan.",
+      );
       setEmployees([]);
     } finally {
       setIsLoading(false);
@@ -48,7 +69,23 @@ const SalaryPage = () => {
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary-200 border-t-primary-600" />
         </div>
       ) : (
-        <SalaryTable employees={employees} onSaveSalary={handleSaveSalary} />
+        <>
+          <div className="mb-4">
+            <SearchBar
+              value={searchQuery}
+              onChange={setSearchQuery}
+              placeholder="Cari karyawan..."
+            />
+          </div>
+          <SalaryTable employees={paginated} onSaveSalary={handleSaveSalary} />
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            filteredTotal={filteredTotal}
+            total={total}
+          />
+        </>
       )}
     </>
   );

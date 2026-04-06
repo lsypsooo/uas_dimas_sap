@@ -28,7 +28,9 @@ const getAllCuti = async (req, res) => {
       });
     } else if (role === "KARYAWAN") {
       if (!karyawan) {
-        return res.status(403).json({ error: "Anda tidak terdaftar sebagai karyawan" });
+        return res
+          .status(403)
+          .json({ error: "Anda tidak terdaftar sebagai karyawan" });
       }
       cutiList = await prisma.cuti.findMany({
         where: { karyawanId: karyawan.id },
@@ -69,11 +71,41 @@ const createCuti = async (req, res) => {
     // Cek apakah karyawan ada di perusahaan yang sama (opsional tapi disarankan)
     const karyawanExists = await prisma.karyawan.findFirst({
       where: { id: Number(karyawanId), perusahaanId: perusahaanId },
+      select: { id: true, jatahCuti: true, perusahaanId: true },
     });
     if (!karyawanExists) {
       return res
         .status(404)
         .json({ error: "Karyawan tidak ditemukan di perusahaan ini." });
+    }
+
+    // Cek kuota cuti
+    const currentYear = new Date().getFullYear();
+    const approvedCutiThisYear = await prisma.cuti.findMany({
+      where: {
+        karyawanId: Number(karyawanId),
+        status: "APPROVED",
+        tanggalMulai: {
+          gte: new Date(`${currentYear}-01-01`),
+          lte: new Date(`${currentYear}-12-31`),
+        },
+      },
+    });
+    const usedDays = approvedCutiThisYear.reduce((total, c) => {
+      const start = new Date(c.tanggalMulai);
+      const end = new Date(c.tanggalSelesai);
+      return total + Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
+    }, 0);
+
+    const requestedStart = new Date(tanggalMulai);
+    const requestedEnd = new Date(tanggalSelesai);
+    const requestedDays =
+      Math.ceil((requestedEnd - requestedStart) / (1000 * 60 * 60 * 24)) + 1;
+
+    if (usedDays + requestedDays > karyawanExists.jatahCuti) {
+      return res.status(400).json({
+        error: `Kuota cuti tidak cukup. Sisa: ${karyawanExists.jatahCuti - usedDays} hari, diminta: ${requestedDays} hari.`,
+      });
     }
 
     // Cek cuti overlapping menggunakan karyawanId dari body
@@ -176,7 +208,9 @@ const deleteCuti = async (req, res) => {
 
   try {
     if (role === "KARYAWAN" && !karyawan) {
-      return res.status(403).json({ error: "Anda tidak terdaftar sebagai karyawan" });
+      return res
+        .status(403)
+        .json({ error: "Anda tidak terdaftar sebagai karyawan" });
     }
 
     const cuti = await prisma.cuti.findUnique({
@@ -215,9 +249,64 @@ const deleteCuti = async (req, res) => {
   }
 };
 
+const getLeaveBalance = async (req, res) => {
+  const { karyawan } = req.user;
+  if (!karyawan) {
+    return res
+      .status(403)
+      .json({ error: "Anda tidak terdaftar sebagai karyawan" });
+  }
+  try {
+    const karyawanData = await prisma.karyawan.findUnique({
+      where: { id: karyawan.id },
+      select: { jatahCuti: true },
+    });
+    const currentYear = new Date().getFullYear();
+    const approvedCuti = await prisma.cuti.findMany({
+      where: {
+        karyawanId: karyawan.id,
+        status: "APPROVED",
+        tanggalMulai: {
+          gte: new Date(`${currentYear}-01-01`),
+          lte: new Date(`${currentYear}-12-31`),
+        },
+      },
+    });
+    const usedDays = approvedCuti.reduce((total, c) => {
+      const start = new Date(c.tanggalMulai);
+      const end = new Date(c.tanggalSelesai);
+      return total + Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
+    }, 0);
+    const pendingCuti = await prisma.cuti.findMany({
+      where: {
+        karyawanId: karyawan.id,
+        status: "PENDING",
+        tanggalMulai: {
+          gte: new Date(`${currentYear}-01-01`),
+          lte: new Date(`${currentYear}-12-31`),
+        },
+      },
+    });
+    const pendingDays = pendingCuti.reduce((total, c) => {
+      const start = new Date(c.tanggalMulai);
+      const end = new Date(c.tanggalSelesai);
+      return total + Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
+    }, 0);
+    res.json({
+      jatahCuti: karyawanData.jatahCuti,
+      terpakai: usedDays,
+      pending: pendingDays,
+      sisa: karyawanData.jatahCuti - usedDays,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 module.exports = {
   getAllCuti,
   createCuti,
   updateStatusCuti,
   deleteCuti,
+  getLeaveBalance,
 };

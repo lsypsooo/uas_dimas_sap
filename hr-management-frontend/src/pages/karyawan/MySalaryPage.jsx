@@ -1,10 +1,25 @@
 import { useState, useEffect } from "react";
 import apiClient from "../../services/api";
 import SalaryHistoryTable from "../../components/features/salaries/SalaryHistoryTable";
+import {
+  useSearchPagination,
+  SearchBar,
+  Pagination,
+} from "../../components/SearchPagination";
 
 const MySalaryPage = () => {
   const [salaryHistory, setSalaryHistory] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const {
+    searchQuery,
+    setSearchQuery,
+    currentPage,
+    setCurrentPage,
+    paginated,
+    totalPages,
+    total,
+    filteredTotal,
+  } = useSearchPagination(salaryHistory, ["bulan", "tahun", "jumlah"]);
 
   useEffect(() => {
     const fetchMySalary = async () => {
@@ -36,7 +51,23 @@ const MySalaryPage = () => {
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary-200 border-t-primary-600" />
         </div>
       ) : (
-        <SalaryHistoryTable salaryHistory={salaryHistory} />
+        <>
+          <div className="mb-4">
+            <SearchBar
+              value={searchQuery}
+              onChange={setSearchQuery}
+              placeholder="Cari gaji..."
+            />
+          </div>
+          <SalaryHistoryTable salaryHistory={paginated} />
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            filteredTotal={filteredTotal}
+            total={total}
+          />
+        </>
       )}
     </>
   );

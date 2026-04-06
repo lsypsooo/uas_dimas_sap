@@ -130,11 +130,9 @@ const updateUser = async (req, res) => {
     res.json(updatedUser);
   } catch (error) {
     if (error.code === "P2002") {
-      return res
-        .status(400)
-        .json({
-          error: `The ${error.meta.target.join(", ")} is already in use.`,
-        });
+      return res.status(400).json({
+        error: `The ${error.meta.target.join(", ")} is already in use.`,
+      });
     }
     res.status(500).json({ error: error.message });
   }

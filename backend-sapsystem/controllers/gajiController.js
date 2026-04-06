@@ -72,7 +72,9 @@ const getGajiByKaryawan = async (req, res) => {
     // Untuk karyawan, hanya bisa melihat gaji sendiri
     if (req.user.role === "KARYAWAN") {
       if (!req.user.karyawan) {
-        return res.status(403).json({ error: "Anda tidak terdaftar sebagai karyawan" });
+        return res
+          .status(403)
+          .json({ error: "Anda tidak terdaftar sebagai karyawan" });
       }
       if (parseInt(karyawanId) !== req.user.karyawan.id) {
         return res

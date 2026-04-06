@@ -67,13 +67,13 @@ export const AuthProvider = ({ children }) => {
     navigate("/login", { replace: true });
   };
 
-  // Ini adalah data dan fungsi yang akan kita "bagikan"
   const value = {
     user,
+    setUser,
     token,
     login,
     logout,
-    isAuthenticated: !!token, // akan bernilai true jika ada token, dan false jika null
+    isAuthenticated: !!token,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

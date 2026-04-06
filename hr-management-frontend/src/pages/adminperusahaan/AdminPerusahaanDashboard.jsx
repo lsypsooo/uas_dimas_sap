@@ -44,7 +44,9 @@ const AdminDashboard = () => {
         setStats((prev) => ({ ...prev, employeeCount: data.length }));
       })
       .catch((error) => {
-        toast.error(error.response?.data?.error || "Gagal mengambil data karyawan.");
+        toast.error(
+          error.response?.data?.error || "Gagal mengambil data karyawan.",
+        );
       })
       .finally(() => setIsLoading(false));
   }, []);
